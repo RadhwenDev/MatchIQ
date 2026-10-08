@@ -1,5 +1,4 @@
 import streamlit as st
-from pathlib import Path
 
 from data_loader import load_all_matches
 from context import get_pre_match_context
@@ -13,17 +12,6 @@ st.set_page_config(
     page_title="MatchIQ",
     page_icon="⚽",
     layout="wide"
-)
-
-# =========================================================
-# LOAD CSS
-# =========================================================
-
-css = Path("style.css").read_text()
-
-st.markdown(
-    f"<style>{css}</style>",
-    unsafe_allow_html=True
 )
 
 
@@ -155,32 +143,6 @@ st.markdown(
         font-size: 16px;
     }
 
-    /* =========================
-       CONTAINER
-       ========================= */
-
-    .match-container {
-        background-color: #121D28;
-        border: 1px solid rgba(255,255,255,0.85);
-        border-radius: 18px;
-        padding: 30px;
-        margin-top: 25px;
-        margin-bottom: 25px;
-    }
-
-    .section-number {
-        color: #AAB4C0;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-        margin-bottom: 6px;
-    }
-
-    .section-title {
-        font-size: 28px;
-        font-weight: 800;
-        margin-bottom: 25px;
-    }
 
     /* =========================
        TEAM CARDS
@@ -238,6 +200,186 @@ st.markdown(
     hr {
         border-color: rgba(255,255,255,0.10);
     }
+
+    /* =========================================================
+   RECENT FORM CARDS
+   ========================================================= */
+
+.form-card {
+    background: #0C131B;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    border-radius: 16px;
+
+    padding: 24px;
+
+    min-height: 190px;
+
+    box-sizing: border-box;
+}
+
+
+/* ---------------------------------------------------------
+   HEADER
+   --------------------------------------------------------- */
+
+.form-card-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 28px;
+}
+
+
+.form-team-name {
+    color: #FFFFFF;
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+
+.form-label {
+    color: #8F9BA8;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.4px;
+
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   BODY
+   --------------------------------------------------------- */
+
+.form-card-body {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 25px;
+}
+
+
+/* ---------------------------------------------------------
+   RESULT BADGES
+   --------------------------------------------------------- */
+
+.form-results {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+
+.form-badge {
+    width: 29px;
+    height: 29px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 7px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    color: #FFFFFF;
+}
+
+
+.form-w {
+    background: #1F9D62;
+}
+
+
+.form-d {
+    background: #5B6673;
+}
+
+
+.form-l {
+    background: #C94A4A;
+}
+
+
+/* ---------------------------------------------------------
+   STATS
+   --------------------------------------------------------- */
+
+.form-stats {
+    display: flex;
+
+    align-items: center;
+
+    gap: 24px;
+}
+
+
+.form-stat {
+    text-align: center;
+
+    min-width: 45px;
+}
+
+
+.form-stat-value {
+    color: #FFFFFF;
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+
+.form-stat-label {
+    color: #7F8B98;
+
+    font-size: 8px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    margin-top: 6px;
+}
+
+
+/* ---------------------------------------------------------
+   NOTE
+   --------------------------------------------------------- */
+
+.form-card-note {
+    color: #687582;
+
+    font-size: 10px;
+
+    line-height: 1.4;
+}
 
     </style>
     """,
@@ -316,7 +458,6 @@ with hero_col2:
 st.markdown(
     """
     <div class="match-container">
-        <div class="section-number">01</div>
         <div class="section-title">Select a Match</div>
     </div>
     """,
@@ -328,110 +469,118 @@ st.markdown(
 # MATCH SELECTORS
 # =========================================================
 
-col1, col2, col3, col4, col5 = st.columns(5)
+
+with st.container(border=True):
+
+    col1, col2, col3, col4, col5 = st.columns(5)
 
 
-# -------------------------
-# League
-# -------------------------
+    # -----------------------------------------------------
+    # League
+    # -----------------------------------------------------
 
-with col1:
+    with col1:
 
-    leagues = sorted(
-        matches["League"].dropna().unique()
-    )
+        leagues = sorted(
+            matches["League"].dropna().unique()
+        )
 
-    selected_league = st.selectbox(
-        "League",
-        leagues
-    )
-
-
-filtered = matches[
-    matches["League"] == selected_league
-]
+        selected_league = st.selectbox(
+            "League",
+            leagues,
+            index=0,
+            key="league_select"
+        )
 
 
-# -------------------------
-# Season
-# -------------------------
-
-with col2:
-
-    seasons = sorted(
-        filtered["Season"].dropna().unique(),
-        reverse=True
-    )
-
-    selected_season = st.selectbox(
-        "Season",
-        seasons
-    )
+    filtered = matches[
+        matches["League"] == selected_league
+    ]
 
 
-filtered = filtered[
-    filtered["Season"] == selected_season
-]
+    # -----------------------------------------------------
+    # Season
+    # -----------------------------------------------------
+
+    with col2:
+
+        seasons = sorted(
+            filtered["Season"].dropna().unique(),
+            reverse=True
+        )
+
+        selected_season = st.selectbox(
+            "Season",
+            seasons,
+            key="season_select"
+        )
 
 
-# -------------------------
-# Date
-# -------------------------
-
-with col3:
-
-    dates = sorted(
-        filtered["Date"].dropna().unique()
-    )
-
-    selected_date = st.selectbox(
-        "Date",
-        dates,
-        format_func=lambda x: x.strftime("%d/%m/%Y")
-    )
+    filtered = filtered[
+        filtered["Season"] == selected_season
+    ]
 
 
-filtered = filtered[
-    filtered["Date"] == selected_date
-]
+    # -----------------------------------------------------
+    # Date
+    # -----------------------------------------------------
+
+    with col3:
+
+        dates = sorted(
+            filtered["Date"].dropna().unique()
+        )
+
+        selected_date = st.selectbox(
+            "Date",
+            dates,
+            format_func=lambda x: x.strftime("%d/%m/%Y"),
+            key="date_select"
+        )
 
 
-# -------------------------
-# Home Team
-# -------------------------
-
-with col4:
-
-    home_teams = sorted(
-        filtered["HomeTeam"].unique()
-    )
-
-    selected_home = st.selectbox(
-        "Home Team",
-        home_teams
-    )
+    filtered = filtered[
+        filtered["Date"] == selected_date
+    ]
 
 
-filtered = filtered[
-    filtered["HomeTeam"] == selected_home
-]
+    # -----------------------------------------------------
+    # Home Team
+    # -----------------------------------------------------
+
+    with col4:
+
+        home_teams = sorted(
+            filtered["HomeTeam"].dropna().unique()
+        )
+
+        selected_home = st.selectbox(
+            "Home Team",
+            home_teams,
+            key="home_select"
+        )
 
 
-# -------------------------
-# Away Team
-# -------------------------
+    filtered = filtered[
+        filtered["HomeTeam"] == selected_home
+    ]
 
-with col5:
 
-    away_teams = sorted(
-        filtered["AwayTeam"].unique()
-    )
+    # -----------------------------------------------------
+    # Away Team
+    # -----------------------------------------------------
 
-    selected_away = st.selectbox(
-        "Away Team",
-        away_teams
-    )
+    with col5:
 
+        away_teams = sorted(
+            filtered["AwayTeam"].dropna().unique()
+        )
+
+        selected_away = st.selectbox(
+            "Away Team",
+            away_teams,
+            key="away_select"
+        )
 
 # =========================================================
 # GET SELECTED MATCH
@@ -463,164 +612,162 @@ away = context["away"]
 
 st.markdown(
     """
-    <div class="match-container">
-        <div class="section-number">02</div>
-        <div class="section-title">Pre-Match Analysis</div>
+    <div class="section-heading">
+        <div class="section-title">
+            Pre-Match Analysis
+        </div>
+
+    </div>
     """,
     unsafe_allow_html=True
 )
 
 
-match_col1, match_col2, match_col3 = st.columns(
-    [2, 1, 2]
-)
-
-
-with match_col1:
-
-    st.markdown(
-        f"""
-        <div class="team-card">
-            <div class="team-name">
-                {home["team"]}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-with match_col2:
-
-    st.markdown(
-        """
-        <div style="
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            height:100%;
-            font-size:28px;
-            font-weight:800;
-        ">
-            VS
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-with match_col3:
-
-    st.markdown(
-        f"""
-        <div class="team-card">
-            <div class="team-name">
-                {away["team"]}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-st.caption(
-    f"Match date: {match['Date'].strftime('%d %B %Y')}"
-)
-
-
 # =========================================================
-# RECENT FORM
+# RECENT FORM CARDS
 # =========================================================
-
-st.subheader("Recent Form")
 
 form_col1, form_col2 = st.columns(2)
 
 
-with form_col1:
+def get_form_results(history, team):
 
-    stats = home["stats"]
+    # context.py returns newest -> oldest
+    # We display oldest -> newest
+    history = history.sort_values(
+        ["Date", "Time"],
+        ascending=True
+    )
+
+    results = []
+
+    for _, game in history.iterrows():
+
+        if game["HomeTeam"] == team:
+
+            result = game["FTR"]
+
+            if result == "H":
+                results.append("W")
+
+            elif result == "D":
+                results.append("D")
+
+            else:
+                results.append("L")
+
+        else:
+
+            result = game["FTR"]
+
+            if result == "A":
+                results.append("W")
+
+            elif result == "D":
+                results.append("D")
+
+            else:
+                results.append("L")
+
+    return results
+
+
+def render_form_card(team_data):
+
+    team = team_data["team"]
+    stats = team_data["stats"]
+    history = team_data["history"]
+
+    results = get_form_results(
+        history,
+        team
+    )
+
+    # Total goals instead of averages
+    goals_scored = 0
+    goals_conceded = 0
+
+    for _, game in history.iterrows():
+
+        if game["HomeTeam"] == team:
+
+            goals_scored += int(game["FTHG"])
+            goals_conceded += int(game["FTAG"])
+
+        else:
+
+            goals_scored += int(game["FTAG"])
+            goals_conceded += int(game["FTHG"])
+
+
+    result_badges = ""
+
+    for result in results:
+
+        result_badges += f"""<span class="form-badge form-{result.lower()}">{result}</span>"""
 
     st.markdown(
         f"""
-        <div class="team-card">
-            <div class="team-name">
-                {home["team"]}
+        <div class="form-card">
+            <!-- TOP ROW -->
+            <div class="form-card-header">
+                <div class="form-team-name">
+                    {team}
+                </div>
+                <div class="form-label">
+                    RECENT FORM · LAST 5
+                </div>
             </div>
-            <div class="stat-line">
-                Last 5:
-                <span class="stat-value">
-                    {stats["wins"]}W
-                    {stats["draws"]}D
-                    {stats["losses"]}L
-                </span>
+            <!-- MIDDLE ROW -->
+            <div class="form-card-body">
+                <div class="form-results">
+                    {result_badges}
+                </div>
+                <div class="form-stats">
+                    <div class="form-stat">
+                        <div class="form-stat-value">
+                            {stats["points"]}
+                        </div>
+                        <div class="form-stat-label">
+                            POINTS
+                        </div>
+                    </div>
+                    <div class="form-stat">
+                        <div class="form-stat-value">
+                            {goals_scored}
+                        </div>
+                        <div class="form-stat-label">
+                            SCORED
+                        </div>
+                    </div>
+                    <div class="form-stat">
+                        <div class="form-stat-value">
+                            {goals_conceded}
+                        </div>
+                        <div class="form-stat-label">
+                            CONCEDED
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-line">
-                Points:
-                <span class="stat-value">
-                    {stats["points"]} / 15
-                </span>
-            </div>
-            <div class="stat-line">
-                Goals scored:
-                <span class="stat-value">
-                    {stats["avg_goals_for"]} / game
-                </span>
-            </div>
-            <div class="stat-line">
-                Goals conceded:
-                <span class="stat-value">
-                    {stats["avg_goals_against"]} / game
-                </span>
+            <!-- BOTTOM ROW -->
+            <div class="form-card-note">
+                Oldest → newest · recent fixtures across competitions · demo data
             </div>
         </div>
         """,
         unsafe_allow_html=True
     )
+
+
+with form_col1:
+
+    render_form_card(home)
 
 
 with form_col2:
 
-    stats = away["stats"]
-
-    st.markdown(
-        f"""
-        <div class="team-card">
-            <div class="team-name">
-                {away["team"]}
-            </div>
-            <div class="stat-line">
-                Last 5:
-                <span class="stat-value">
-                    {stats["wins"]}W
-                    {stats["draws"]}D
-                    {stats["losses"]}L
-                </span>
-            </div>
-            <div class="stat-line">
-                Points:
-                <span class="stat-value">
-                    {stats["points"]} / 15
-                </span>
-            </div>
-            <div class="stat-line">
-                Goals scored:
-                <span class="stat-value">
-                    {stats["avg_goals_for"]} / game
-                </span>
-            </div>
-            <div class="stat-line">
-                Goals conceded:
-                <span class="stat-value">
-                    {stats["avg_goals_against"]} / game
-                </span>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
+    render_form_card(away)
 # =========================================================
 # H2H
 # =========================================================
@@ -676,7 +823,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.markdown(
     """
     <div class="match-container">
-        <div class="section-number">03</div>
         <div class="section-title">
             Your Prediction
         </div>

@@ -56,6 +56,10 @@ TEAM_LOGOS = {
 def get_logo(team):
     return TEAM_LOGOS.get(str(team), "")
 
+def select_match(match_index: int) -> None:
+    st.session_state["selected_match_index"] = match_index
+    st.session_state["page_transition"] = True   
+
 
 def get_initials(team):
     words = str(team).strip().split()
@@ -309,6 +313,26 @@ def inject_selection_css():
         """,
         unsafe_allow_html=True
         )
+    
+def play_zoom_transition():
+    """Zoom the current page in and fade it out."""
+    st.markdown(
+        """
+        <style>
+        [data-testid="stMainBlockContainer"],
+        .block-container {
+            animation: zoomOut 0.7s ease-in forwards;
+            transform-origin: center center;
+            pointer-events: none;
+        }
+        @keyframes zoomOut {
+            0%   { transform: scale(1);    opacity: 1; filter: blur(0); }
+            100% { transform: scale(1.25); opacity: 0; filter: blur(6px); }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 def safe(value):
     """Escape text before inserting it into HTML."""
@@ -333,12 +357,6 @@ def render_team(team, role):
         unsafe_allow_html=True
     )
 
-
-def render_match_selection(matches):
-    """
-    Display searchable match cards.
-    Return the original dataframe index when the user clicks Analyse Match.
-    """
 
 
 def render_match_selection(matches):

@@ -1,6 +1,8 @@
 import html
 
 import streamlit as st
+import time
+from match_selection import render_match_selection, play_zoom_transition
 
 from data_loader import load_all_matches
 from match_selection import render_match_selection
@@ -24,6 +26,9 @@ STEPS = [
     "Reveal",
     "Learn",
 ]
+
+if "page_transition" not in st.session_state:
+    st.session_state["page_transition"] = False
 
 
 # =========================================================
@@ -207,6 +212,16 @@ render_stepper(step)
 if step == 1 or not st.session_state["match_selection_confirmed"]:
     st.session_state["analysis_step"] = 1
     render_match_selection(matches)
+
+    # Zoom animation, then go to the context page
+    if st.session_state.get("page_transition"):
+        play_zoom_transition()
+        time.sleep(0.7)   # same duration as the CSS animation
+        st.session_state["page_transition"] = False
+        st.session_state["match_selection_confirmed"] = True
+        st.session_state["analysis_step"] = 2
+        st.session_state["scroll_to_top"] = True 
+        st.rerun()
 
 
 # =========================================================

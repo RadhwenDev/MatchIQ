@@ -2,6 +2,7 @@ import html
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 # =========================================================
@@ -98,6 +99,299 @@ def inject_context_css():
             font-size: 11px;
             margin-top: 15px;
         }
+         .stApp {
+            background-color: #0b0f17;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .match-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .badge-pill {
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .badge-pill-green {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .teams-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .teams-display {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .team-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .team-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+        }
+
+        .team-title {
+            color: #ffffff;
+            font-size: 38px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .vs-text {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 10px;
+            align-self: center;
+        }
+
+        .sub-notice {
+            color: #94a3b8;
+            font-size: 12px;
+            text-align: right;
+            max-width: 320px;
+            line-height: 1.4;
+        }
+
+        .section-title {
+            font-size: 11px;
+            color: #34d399;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .alert-banner {
+            background-color: #0d281e;
+            border: 1px solid #144734;
+            border-radius: 8px;
+            padding: 14px 18px;
+            color: #94a3b8;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .team-card {
+            background-color: #111822;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            color: #f8fafc;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-team-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .recent-form-title {
+            font-size: 11px;
+            color: #64748b;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .card-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .form-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 28px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .card-footer {
+            font-size: 12px;
+            color: #64748b;
+            border-top: 1px solid #1e293b;
+            padding-top: 14px;
+        }
+        .form-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            color: #f8fafc;
+        }
+        .form-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .form-team-name {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .form-label {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+        .form-card-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .form-results {
+            display: flex;
+            gap: 8px;
+            margin: 0;
+        }
+        .form-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .form-w { background: #064e3b; color: #34d399; }
+        .form-d { background: #1e293b; color: #94a3b8; }
+        .badge-l { background-color: #35272a; color: #d5a4a1; }
+
+        .form-stats {
+            display: flex;
+            gap: 28px;
+            text-align: center;
+        }
+        .form-stat {
+            background: transparent;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .form-stat-value {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .form-stat-label {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+        .form-card-note {
+            color: #64748b;
+            font-size: 12px;
+            border-top: 1px solid #1e293b;
+            padding-top: 14px;
+            margin-top: 0;
+        }
+        [data-testid="stMainBlockContainer"],
+        .block-container {
+            animation: pageEnter 0.6s ease-out;
+        }
+        @keyframes pageEnter {
+            from { opacity: 0; transform: scale(0.94); }
+            to   { opacity: 1; transform: scale(1); }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -107,7 +401,34 @@ def inject_context_css():
 # =========================================================
 # HELPERS
 # =========================================================
+def scroll_to_top():
+    """Reset the scroll position to the top of the page."""
+    components.html(
+        """
+        <script>
+        const doc = window.parent.document;
 
+        function goTop() {
+            const targets = [
+                doc.querySelector('[data-testid="stMain"]'),
+                doc.querySelector('section.main'),
+                doc.querySelector('[data-testid="stAppViewContainer"]'),
+                doc.documentElement,
+                doc.body,
+            ];
+            targets.forEach(el => {
+                if (el) el.scrollTop = 0;
+            });
+            window.parent.scrollTo(0, 0);
+        }
+
+        goTop();
+        setTimeout(goTop, 50);
+        setTimeout(goTop, 250);
+        </script>
+        """,
+        height=0,
+    )
 def safe(value):
     return html.escape(str(value))
 
@@ -218,21 +539,23 @@ def render_form_card(team, team_history):
         <div class="form-card">
             <div class="form-card-header">
                 <div class="form-team-name">{safe(team)}</div>
-                <div class="form-label">LAST {len(recent)} MATCHES</div>
+                <div class="form-label">RECENT FORM · LAST {len(recent)}</div>
             </div>
-            <div class="form-results">{results_html}</div>
-            <div class="form-stats">
-                <div class="form-stat">
-                    <div class="form-stat-value">{points}</div>
-                    <div class="form-stat-label">POINTS</div>
-                </div>
-                <div class="form-stat">
-                    <div class="form-stat-value">{goals_for}</div>
-                    <div class="form-stat-label">SCORED</div>
-                </div>
-                <div class="form-stat">
-                    <div class="form-stat-value">{goals_against}</div>
-                    <div class="form-stat-label">CONCEDED</div>
+            <div class="form-card-body">
+                <div class="form-results">{results_html}</div>
+                <div class="form-stats">
+                    <div class="form-stat">
+                        <div class="form-stat-value">{points}</div>
+                        <div class="form-stat-label">POINTS</div>
+                    </div>
+                    <div class="form-stat">
+                        <div class="form-stat-value">{goals_for}</div>
+                        <div class="form-stat-label">SCORED</div>
+                    </div>
+                    <div class="form-stat">
+                        <div class="form-stat-value">{goals_against}</div>
+                        <div class="form-stat-label">CONCEDED</div>
+                    </div>
                 </div>
             </div>
             <div class="form-card-note">
@@ -287,7 +610,8 @@ def render_head_to_head(history, home_team, away_team):
 
 def render_match_context(matches, selected_index):
     inject_context_css()
-
+    if st.session_state.pop("scroll_to_top", False):
+        scroll_to_top()
     if selected_index is None:
         st.warning("Select a match first.")
         return
@@ -309,61 +633,40 @@ def render_match_context(matches, selected_index):
     target_date = pd.to_datetime(
         target["Date"], errors="coerce", dayfirst=True
     )
+    
+    date_str = target_date.strftime('%d %B %Y') if pd.notna(target_date) else ""
 
-    st.title("Pre-Match Analysis")
-    st.caption(
-        "Travel back to before kickoff. The selected match's result "
-        "and post-match statistics are hidden during this stage."
-    )
+    st.markdown(f"""
+    <div class="match-header-top">
+        <div class="breadcrumb">Pre-Match Analysis &nbsp;/&nbsp; {date_str}</div>
+        <div class="header-badges">
+            <span class="badge-pill">Illustrative training scenario</span>
+            <span class="badge-pill-green">🛡️ Pre-match</span>
+        </div>
+    </div>
 
-    if pd.notna(target_date):
-        st.markdown(
-            f"**{home_team} vs {away_team}** · "
-            f"{target_date.strftime('%d %B %Y')}"
-        )
-    else:
-        st.markdown(f"**{home_team} vs {away_team}**")
+    <div class="teams-section">
+        <div class="teams-display">
+            <div class="team-block">
+                <span class="team-label">HOME TEAM</span>
+                <span class="team-title">{home_team}</span>
+            </div>
+            <span class="vs-text">VS</span>
+            <div class="team-block">
+                <span class="team-label">AWAY TEAM</span>
+                <span class="team-title">{away_team}</span>
+            </div>
+        </div>
+        <div class="sub-notice">
+            Travel back to before kickoff. The selected match's result and post-match statistics are hidden during this stage.
+        </div>
+    </div>
 
-    st.divider()
-
-    if history.empty:
-        st.warning(
-            "No completed matches before this fixture were found. "
-            "Try a later fixture or load earlier seasons."
-        )
-    else:
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            render_metric("Historical matches", len(history))
-
-        with col2:
-            seasons_count = (
-                history["Season"].nunique()
-                if "Season" in history.columns
-                else "Unknown"
-            )
-            render_metric("Historical seasons", seasons_count)
-
-        with col3:
-            first_date = history["Date"].min()
-            render_metric(
-                "History available from",
-                first_date.strftime("%d %b %Y")
-                if pd.notna(first_date)
-                else "Unknown",
-            )
-
-        last_date = history["Date"].max()
-        if pd.notna(last_date):
-            st.caption(
-                f"Historical data available through "
-                f"{last_date.strftime('%d %b %Y')}. "
-                "Matches on the selected fixture's date are excluded."
-            )
-
-    st.divider()
-    st.subheader("Team form before kickoff")
+    <div class="section-title">PRE-MATCH INFORMATION</div>
+    <div class="alert-banner">
+        <span>🛡️</span> Only information available before kickoff is shown.
+    </div>
+    """, unsafe_allow_html=True)
 
     left, right = st.columns(2, gap="large")
 

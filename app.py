@@ -1,390 +1,161 @@
+import html
+
 import streamlit as st
 
 from data_loader import load_all_matches
-from context import get_pre_match_context
+from match_selection import render_match_selection
+from match_context import render_match_context
 
 
 # =========================================================
-# PAGE CONFIG
+# CONFIGURATION
 # =========================================================
 
 st.set_page_config(
     page_title="MatchIQ",
     page_icon="⚽",
-    layout="wide"
+    layout="wide",
 )
+
+STEPS = [
+    "Select a match",
+    "Study context",
+    "Predict",
+    "Reveal",
+    "Learn",
+]
 
 
 # =========================================================
-# CUSTOM CSS
+# SESSION STATE
 # =========================================================
 
-st.markdown(
-    """
-    <style>
-
-    /* =========================
-       GLOBAL
-       ========================= */
-
-    .stApp {
-        background-color: #0C131B;
-        color: #FFFFFF;
-    }
-
-    .block-container {
-        max-width: 1400px;
-        padding-top: 3rem;
-        padding-bottom: 4rem;
-    }
-
-    /* =========================
-       TEXT
-       ========================= */
-
-    h1, h2, h3, h4, p, label {
-        color: #FFFFFF !important;
-    }
-
-    .muted {
-        color: #AAB4C0;
-    }
-
-    /* =========================
-       HERO
-       ========================= */
-
-    .hero {
-        padding: 50px 20px 55px 20px;
-    }
-
-    .hero-tag {
-        display: inline-block;
-        color: #AAB4C0;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin-bottom: 18px;
-    }
-
-    .hero-title {
-        font-size: 52px;
-        line-height: 1.08;
-        font-weight: 800;
-        max-width: 720px;
-        margin-bottom: 22px;
-    }
-
-    .hero-description {
-        color: #AAB4C0;
-        font-size: 18px;
-        line-height: 1.7;
-        max-width: 650px;
-        margin-bottom: 22px;
-    }
-
-    .hero-check {
-        color: #FFFFFF;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-    /* =========================
-       HERO PREVIEW
-       ========================= */
-
-    .hero-preview {
-        background:
-            linear-gradient(
-                rgba(12, 19, 27, 0.45),
-                rgba(12, 19, 27, 0.80)
-            ),
-            url("https://images.pexels.com/photos/399187/pexels-photo-399187.jpeg")
-            center / cover no-repeat;
-
-        min-height: 360px;
-        border-radius: 20px;
-        padding: 28px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        border: 1px solid rgba(255,255,255,0.12);
-    }
-
-    .preview-tag {
-        align-self: flex-start;
-        background: rgba(22, 30, 42, 0.65);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        color: #94a3b8;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.8px;
-        padding: 6px 14px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        text-transform: uppercase;
-    }
-
-    .preview-title {
-        color: #ffffff;
-        font-size: 26px;
-        font-weight: 600;
-        letter-spacing: -0.3px;
-        margin-bottom: 6px;
-        line-height: 1.2;
-    }
-
-    .preview-subtitle {
-        color: #D0D7DE;
-        font-size: 16px;
-    }
-
-
-    /* =========================
-       TEAM CARDS
-       ========================= */
-
-    .team-card {
-        background-color: #0C131B;
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 14px;
-        padding: 22px;
-        text-align: center;
-    }
-
-    .team-name {
-        font-size: 22px;
-        font-weight: 800;
-        margin-bottom: 15px;
-    }
-
-    .stat-line {
-        color: #AAB4C0;
-        margin: 7px 0;
-        font-size: 14px;
-    }
-
-    .stat-value {
-        color: #FFFFFF;
-        font-weight: 700;
-    }
-
-    /* =========================
-       BUTTONS
-       ========================= */
-
-    .stButton > button {
-        width: 100%;
-        border-radius: 10px;
-        min-height: 46px;
-        font-weight: 700;
-    }
-
-    /* =========================
-       DATAFRAME
-       ========================= */
-
-    [data-testid="stDataFrame"] {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    /* =========================
-       DIVIDER
-       ========================= */
-
-    hr {
-        border-color: rgba(255,255,255,0.10);
-    }
-
-    /* =========================================================
-   RECENT FORM CARDS
-   ========================================================= */
-
-.form-card {
-    background: #0C131B;
-
-    border: 1px solid rgba(255, 255, 255, 0.12);
-
-    border-radius: 16px;
-
-    padding: 24px;
-
-    min-height: 190px;
-
-    box-sizing: border-box;
-}
-
-
-/* ---------------------------------------------------------
-   HEADER
-   --------------------------------------------------------- */
-
-.form-card-header {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
-    margin-bottom: 28px;
-}
-
-
-.form-team-name {
-    color: #FFFFFF;
-
-    font-size: 22px;
-
-    font-weight: 800;
-
-    line-height: 1;
-}
-
-
-.form-label {
-    color: #8F9BA8;
-
-    font-size: 10px;
-
-    font-weight: 700;
-
-    letter-spacing: 1.4px;
-
-    white-space: nowrap;
-}
-
-
-/* ---------------------------------------------------------
-   BODY
-   --------------------------------------------------------- */
-
-.form-card-body {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
-    margin-bottom: 25px;
-}
-
-
-/* ---------------------------------------------------------
-   RESULT BADGES
-   --------------------------------------------------------- */
-
-.form-results {
-    display: flex;
-
-    align-items: center;
-
-    gap: 7px;
-}
-
-
-.form-badge {
-    width: 29px;
-    height: 29px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 7px;
-
-    font-size: 11px;
-
-    font-weight: 800;
-
-    color: #FFFFFF;
-}
-
-
-.form-w {
-    background: #1F9D62;
-}
-
-
-.form-d {
-    background: #5B6673;
-}
-
-
-.form-l {
-    background: #C94A4A;
-}
-
-
-/* ---------------------------------------------------------
-   STATS
-   --------------------------------------------------------- */
-
-.form-stats {
-    display: flex;
-
-    align-items: center;
-
-    gap: 24px;
-}
-
-
-.form-stat {
-    text-align: center;
-
-    min-width: 45px;
-}
-
-
-.form-stat-value {
-    color: #FFFFFF;
-
-    font-size: 22px;
-
-    font-weight: 800;
-
-    line-height: 1;
-}
-
-
-.form-stat-label {
-    color: #7F8B98;
-
-    font-size: 8px;
-
-    font-weight: 700;
-
-    letter-spacing: 1px;
-
-    margin-top: 6px;
-}
-
-
-/* ---------------------------------------------------------
-   NOTE
-   --------------------------------------------------------- */
-
-.form-card-note {
-    color: #687582;
-
-    font-size: 10px;
-
-    line-height: 1.4;
-}
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+if "analysis_step" not in st.session_state:
+    st.session_state["analysis_step"] = 1
+
+if "match_selection_confirmed" not in st.session_state:
+    st.session_state["match_selection_confirmed"] = False
+
+if "selected_match_index" not in st.session_state:
+    st.session_state["selected_match_index"] = None
+
+
+# =========================================================
+# WIZARD
+# =========================================================
+
+def render_stepper(current_step):
+    items = []
+
+    for number, label in enumerate(STEPS, start=1):
+        if number < current_step:
+            state = "done"
+            icon = "✓"
+        elif number == current_step:
+            state = "active"
+            icon = str(number)
+        else:
+            state = "todo"
+            icon = str(number)
+
+        items.append(
+            f"""
+            <div class="step {state}">
+                <div class="circle">{icon}</div>
+                <span class="step-label">{html.escape(label)}</span>
+            </div>
+            """
+        )
+
+        if number < len(STEPS):
+            items.append('<div class="step-line"></div>')
+
+    st.markdown(
+        """
+        <style>
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0d131c;
+            padding: 16px;
+            border-radius: 14px;
+            margin: 10px 0 24px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-label {
+            font-size: 12px;
+            color: #7d8a9a;
+        }
+        .step-line {
+            flex: 1;
+            min-width: 8px;
+            height: 1px;
+            background: #2a3646;
+        }
+        .step.done .circle {
+            background: #17382f;
+            color: #6fd3a8;
+        }
+        .step.active .circle {
+            background: #7fd9b0;
+            color: #0d131c;
+        }
+        .step.active .step-label {
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .step.todo .circle {
+            background: #1b2635;
+            color: #7d8a9a;
+        }
+        @media (max-width: 700px) {
+            .stepper {
+                gap: 5px;
+                padding: 10px 6px;
+            }
+            .step {
+                flex-direction: column;
+                white-space: normal;
+                text-align: center;
+                gap: 4px;
+            }
+            .step-label {
+                font-size: 9px;
+            }
+            .step-line {
+                min-width: 4px;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="stepper">'
+        + "".join(items)
+        + "</div>",
+        unsafe_allow_html=True,
+    )
 
 
 # =========================================================
@@ -393,565 +164,209 @@ st.markdown(
 
 matches = load_all_matches()
 
-matches["League"] = "La Liga"
+if matches is None or matches.empty:
+    st.error("No match data could be loaded.")
+    st.stop()
+
+if "League" not in matches.columns:
+    matches["League"] = "La Liga"
 
 
 # =========================================================
-# HERO
+# VALIDATE SELECTED MATCH
 # =========================================================
 
-hero_col1, hero_col2 = st.columns(
-    [1.05, 0.95],
-    gap="large"
-)
+selected_index = st.session_state.get("selected_match_index")
 
-with hero_col1:
-
-    st.markdown(
-        """
-        <div class="hero">
-            <div class="hero-tag">
-                THE FOOTBALL ANALYST'S TRAINING GROUND
-            </div>
-            <div class="hero-title">
-                Can you think like a football analyst?
-            </div>
-            <div class="hero-description">
-                Study the information available before kickoff.
-                Make your prediction. Then discover what really happened.
-            </div>
-            <div class="hero-check">
-                ✓ &nbsp; Real analysis. Historical matches. No betting.
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+if (
+    st.session_state["match_selection_confirmed"]
+    and (
+        selected_index is None
+        or selected_index not in matches.index
     )
-
-with hero_col2:
-
-    st.markdown(
-        """
-        <div class="hero-preview">
-            <div class="preview-tag">
-                ◷ &nbsp; BEFORE KICKOFF
-            </div>
-            <div>
-                <div class="preview-title">
-                    The result can wait.
-                </div>
-                <div class="preview-subtitle">
-                    Your reasoning comes first.
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+):
+    st.session_state["match_selection_confirmed"] = False
+    st.session_state["selected_match_index"] = None
+    st.session_state["analysis_step"] = 1
 
 
 # =========================================================
-# 1. SELECT A MATCH
+# DISPLAY CURRENT STAGE
 # =========================================================
 
-st.markdown(
-    """
-    <div class="match-container">
-        <div class="section-title">Select a Match</div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+step = int(st.session_state["analysis_step"])
+step = max(1, min(step, len(STEPS)))
+
+render_stepper(step)
 
 
 # =========================================================
-# MATCH SELECTORS
+# STEP 1 — SELECT A MATCH
 # =========================================================
 
-
-with st.container(border=True):
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-
-    # -----------------------------------------------------
-    # League
-    # -----------------------------------------------------
-
-    with col1:
-
-        leagues = sorted(
-            matches["League"].dropna().unique()
-        )
-
-        selected_league = st.selectbox(
-            "League",
-            leagues,
-            index=0,
-            key="league_select"
-        )
-
-
-    filtered = matches[
-        matches["League"] == selected_league
-    ]
-
-
-    # -----------------------------------------------------
-    # Season
-    # -----------------------------------------------------
-
-    with col2:
-
-        seasons = sorted(
-            filtered["Season"].dropna().unique(),
-            reverse=True
-        )
-
-        selected_season = st.selectbox(
-            "Season",
-            seasons,
-            key="season_select"
-        )
-
-
-    filtered = filtered[
-        filtered["Season"] == selected_season
-    ]
-
-
-    # -----------------------------------------------------
-    # Date
-    # -----------------------------------------------------
-
-    with col3:
-
-        dates = sorted(
-            filtered["Date"].dropna().unique()
-        )
-
-        selected_date = st.selectbox(
-            "Date",
-            dates,
-            format_func=lambda x: x.strftime("%d/%m/%Y"),
-            key="date_select"
-        )
-
-
-    filtered = filtered[
-        filtered["Date"] == selected_date
-    ]
-
-
-    # -----------------------------------------------------
-    # Home Team
-    # -----------------------------------------------------
-
-    with col4:
-
-        home_teams = sorted(
-            filtered["HomeTeam"].dropna().unique()
-        )
-
-        selected_home = st.selectbox(
-            "Home Team",
-            home_teams,
-            key="home_select"
-        )
-
-
-    filtered = filtered[
-        filtered["HomeTeam"] == selected_home
-    ]
-
-
-    # -----------------------------------------------------
-    # Away Team
-    # -----------------------------------------------------
-
-    with col5:
-
-        away_teams = sorted(
-            filtered["AwayTeam"].dropna().unique()
-        )
-
-        selected_away = st.selectbox(
-            "Away Team",
-            away_teams,
-            key="away_select"
-        )
-
-# =========================================================
-# GET SELECTED MATCH
-# =========================================================
-
-selected_match = filtered[
-    filtered["AwayTeam"] == selected_away
-]
-
-
-selected_index = selected_match.index[0]
-
-
-context = get_pre_match_context(
-    matches,
-    selected_index
-)
-
-
-match = context["match"]
-
-home = context["home"]
-away = context["away"]
+if step == 1 or not st.session_state["match_selection_confirmed"]:
+    st.session_state["analysis_step"] = 1
+    render_match_selection(matches)
 
 
 # =========================================================
-# 2. PRE-MATCH ANALYSIS
+# STEP 2 — STUDY CONTEXT
 # =========================================================
 
-st.markdown(
-    """
-    <div class="section-heading">
-        <div class="section-title">
-            Pre-Match Analysis
-        </div>
-
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# =========================================================
-# RECENT FORM CARDS
-# =========================================================
-
-form_col1, form_col2 = st.columns(2)
-
-
-def get_form_results(history, team):
-
-    # context.py returns newest -> oldest
-    # We display oldest -> newest
-    history = history.sort_values(
-        ["Date", "Time"],
-        ascending=True
-    )
-
-    results = []
-
-    for _, game in history.iterrows():
-
-        if game["HomeTeam"] == team:
-
-            result = game["FTR"]
-
-            if result == "H":
-                results.append("W")
-
-            elif result == "D":
-                results.append("D")
-
-            else:
-                results.append("L")
-
-        else:
-
-            result = game["FTR"]
-
-            if result == "A":
-                results.append("W")
-
-            elif result == "D":
-                results.append("D")
-
-            else:
-                results.append("L")
-
-    return results
-
-
-def render_form_card(team_data):
-
-    team = team_data["team"]
-    stats = team_data["stats"]
-    history = team_data["history"]
-
-    results = get_form_results(
-        history,
-        team
-    )
-
-    # Total goals instead of averages
-    goals_scored = 0
-    goals_conceded = 0
-
-    for _, game in history.iterrows():
-
-        if game["HomeTeam"] == team:
-
-            goals_scored += int(game["FTHG"])
-            goals_conceded += int(game["FTAG"])
-
-        else:
-
-            goals_scored += int(game["FTAG"])
-            goals_conceded += int(game["FTHG"])
-
-
-    result_badges = ""
-
-    for result in results:
-
-        result_badges += f"""<span class="form-badge form-{result.lower()}">{result}</span>"""
-
-    st.markdown(
-        f"""
-        <div class="form-card">
-            <!-- TOP ROW -->
-            <div class="form-card-header">
-                <div class="form-team-name">
-                    {team}
-                </div>
-                <div class="form-label">
-                    RECENT FORM · LAST 5
-                </div>
-            </div>
-            <!-- MIDDLE ROW -->
-            <div class="form-card-body">
-                <div class="form-results">
-                    {result_badges}
-                </div>
-                <div class="form-stats">
-                    <div class="form-stat">
-                        <div class="form-stat-value">
-                            {stats["points"]}
-                        </div>
-                        <div class="form-stat-label">
-                            POINTS
-                        </div>
-                    </div>
-                    <div class="form-stat">
-                        <div class="form-stat-value">
-                            {goals_scored}
-                        </div>
-                        <div class="form-stat-label">
-                            SCORED
-                        </div>
-                    </div>
-                    <div class="form-stat">
-                        <div class="form-stat-value">
-                            {goals_conceded}
-                        </div>
-                        <div class="form-stat-label">
-                            CONCEDED
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- BOTTOM ROW -->
-            <div class="form-card-note">
-                Oldest → newest · recent fixtures across competitions · demo data
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
+elif step == 2:
+    render_match_context(
+        matches,
+        st.session_state["selected_match_index"],
     )
 
 
-with form_col1:
-
-    render_form_card(home)
-
-
-with form_col2:
-
-    render_form_card(away)
 # =========================================================
-# H2H
+# GET SELECTED MATCH FOR LATER STAGES
 # =========================================================
-
-st.subheader("Head-to-Head")
-
-h2h = context["h2h"]
-
-if h2h.empty:
-
-    st.info("No previous meetings available.")
 
 else:
+    selected_index = st.session_state["selected_match_index"]
+    match = matches.loc[selected_index]
 
-    display_h2h = h2h[
-        [
-            "Date",
-            "HomeTeam",
-            "AwayTeam",
-            "FTHG",
-            "FTAG",
-            "FTR"
-        ]
-    ].copy()
+    home_team = match["HomeTeam"]
+    away_team = match["AwayTeam"]
 
-    display_h2h["Date"] = display_h2h[
-        "Date"
-    ].dt.strftime("%d/%m/%Y")
+    st.caption(f"{home_team} vs {away_team}")
 
-    display_h2h.columns = [
-        "Date",
-        "Home",
-        "Away",
-        "Home Goals",
-        "Away Goals",
-        "Result"
-    ]
+    # -----------------------------------------------------
+    # STEP 3 — PREDICT
+    # -----------------------------------------------------
 
-    st.dataframe(
-        display_h2h,
-        use_container_width=True,
-        hide_index=True
-    )
-
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-
-# =========================================================
-# 3. YOUR PREDICTION
-# =========================================================
-
-st.markdown(
-    """
-    <div class="match-container">
-        <div class="section-title">
-            Your Prediction
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-prediction = st.radio(
-    "What do you think will happen?",
-    [
-        f"{home['team']} Win",
-        "Draw",
-        f"{away['team']} Win"
-    ],
-    horizontal=True
-)
-
-
-if st.button(
-    "🔒 Lock Prediction",
-    use_container_width=True
-):
-
-    st.session_state["prediction"] = prediction
-    st.session_state["locked"] = True
-
-
-if st.session_state.get("locked", False):
-
-    st.success(
-        f"Prediction locked: "
-        f"**{st.session_state['prediction']}**"
-    )
-
-    st.info(
-        "Your prediction is locked. "
-        "The actual result is hidden until you reveal it."
-    )
-
-    if st.button(
-        "🎯 Reveal Result",
-        use_container_width=True
-    ):
-
-        st.session_state["reveal"] = True
-
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-
-# =========================================================
-# 4. RESULT
-# =========================================================
-
-if st.session_state.get("reveal", False):
-
-    st.markdown(
-        """
-        <div class="match-container">
-
-            <div class="section-number">04</div>
-
-            <div class="section-title">
-                Result
-            </div>
-
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        f"""
-        <div style="
-            text-align:center;
-            font-size:32px;
-            font-weight:800;
-            margin:30px 0;
-        ">
-            {match['HomeTeam']}
-            &nbsp;
-            {int(match['FTHG'])}
-            -
-            {int(match['FTAG'])}
-            &nbsp;
-            {match['AwayTeam']}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    actual_result = match["FTR"]
-
-
-    if actual_result == "H":
-
-        result_text = f"{home['team']} Win"
-
-    elif actual_result == "A":
-
-        result_text = f"{away['team']} Win"
-
-    else:
-
-        result_text = "Draw"
-
-
-    st.write(
-        f"**Actual result:** {result_text}"
-    )
-
-
-    user_prediction = st.session_state["prediction"]
-
-
-    if user_prediction == result_text:
-
-        st.success(
-            "✅ Correct prediction!"
+    if step == 3:
+        st.title("Make Your Prediction")
+        st.write(
+            "Based on the pre-match information, "
+            "what do you think the outcome will be?"
         )
 
-    else:
+        prediction_options = {
+            f"{home_team} win": "H",
+            "Draw": "D",
+            f"{away_team} win": "A",
+        }
 
-        st.error(
-            f"❌ Incorrect prediction. "
-            f"You predicted: {user_prediction}"
+        option_labels = list(prediction_options.keys())
+
+        current_prediction = st.session_state.get("prediction", "D")
+
+        default_index = next(
+            (
+                i for i, label in enumerate(option_labels)
+                if prediction_options[label] == current_prediction
+            ),
+            1,
         )
 
+        selected_prediction_label = st.radio(
+            "Your predicted outcome",
+            option_labels,
+            index=default_index,
+        )
 
-    st.markdown("</div>", unsafe_allow_html=True)
+        if st.button(
+            "Lock Prediction & Reveal Result →",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.session_state["prediction"] = prediction_options[
+                selected_prediction_label
+            ]
+            st.session_state["analysis_step"] = 4
+            st.rerun()
+
+        if st.button("← Back to Context", use_container_width=True):
+            st.session_state["analysis_step"] = 2
+            st.rerun()
+
+    # -----------------------------------------------------
+    # STEP 4 — REVEAL
+    # -----------------------------------------------------
+
+    elif step == 4:
+        st.title("The Result")
+        st.write(f"**{home_team} vs {away_team}**")
+
+        if (
+            "FTHG" not in match.index
+            or "FTAG" not in match.index
+            or not __import__("pandas").notna(match["FTHG"])
+            or not __import__("pandas").notna(match["FTAG"])
+        ):
+            st.warning(
+                "The actual score is unavailable for this fixture."
+            )
+        else:
+            home_goals = int(match["FTHG"])
+            away_goals = int(match["FTAG"])
+
+            st.markdown(
+                f"## {home_team} **{home_goals} – {away_goals}** "
+                f"{away_team}"
+            )
+
+            actual_result = (
+                "H" if home_goals > away_goals
+                else "A" if away_goals > home_goals
+                else "D"
+            )
+
+            prediction = st.session_state.get("prediction")
+
+            if prediction is None:
+                st.warning("No saved prediction was found.")
+            elif prediction == actual_result:
+                st.success("Correct prediction!")
+            else:
+                st.info("Your prediction was different from the actual outcome.")
+
+            if st.button(
+                "Continue to Learning →",
+                type="primary",
+                use_container_width=True,
+            ):
+                st.session_state["actual_result"] = actual_result
+                st.session_state["analysis_step"] = 5
+                st.rerun()
+
+        if st.button("← Back to Prediction", use_container_width=True):
+            st.session_state["analysis_step"] = 3
+            st.rerun()
+
+    # -----------------------------------------------------
+    # STEP 5 — LEARN
+    # -----------------------------------------------------
+
+    elif step == 5:
+        st.title("What Did You Learn?")
+        st.write(
+            "Reflect on your prediction. Which pre-match information "
+            "influenced your decision, and what would you analyse "
+            "differently next time?"
+        )
+
+        reflection = st.text_area(
+            "Your analysis",
+            placeholder=(
+                "I predicted this outcome because...\n"
+                "Next time, I would also consider..."
+            ),
+            key="learning_reflection",
+        )
+
+        if st.button(
+            "Finish Analysis",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.success("Analysis completed. Good work!")
+            st.write("**Your reflection:**")
+            st.write(reflection or "No reflection added.")
+
+        if st.button("← Back to Result", use_container_width=True):
+            st.session_state["analysis_step"] = 4
+            st.rerun()

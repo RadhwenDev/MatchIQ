@@ -6,12 +6,6 @@ from team_utils import TEAM_LOGOS, get_logo, get_initials, safe
 
 def select_match(match_index: int) -> None:
     st.session_state["selected_match_index"] = match_index
-    st.session_state["match_selection_confirmed"] = True
-    st.session_state["analysis_step"] = 2
-
-
-def select_match(match_index: int) -> None:
-    st.session_state["selected_match_index"] = match_index
     st.session_state["page_transition"] = True   
 
 
@@ -19,6 +13,9 @@ def select_match(match_index: int) -> None:
 def format_match_date(value):
     return pd.Timestamp(value).strftime("%d %b %Y")
 
+
+def reset_page():
+    st.session_state["match_page"] = 1
 
 def inject_selection_css():
     st.markdown(
@@ -188,11 +185,40 @@ def inject_selection_css():
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-
-        .footer-left {
+        .club-fallback {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #1e293b;
             color: #94a3b8;
-            font-size: 14px;
-            font-weight: 400;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .club-name {
+            color: #F8FAFC;
+            font-weight: 700;
+            font-size: .95rem;
+            margin-top: 10px;
+        }
+        .club-role {
+            color: #64748b;
+            font-size: .65rem;
+            letter-spacing: 1px;
+        }
+        .vs {
+            color: #64748b;
+            font-weight: 700;
+            text-align: center;
+            padding-top: 28px;
+        }
+        .empty-state {
+            text-align: center;
+            color: #94A3B8;
+            padding: 40px 0;
         }
 
         .footer-left .brand-name {
@@ -309,6 +335,8 @@ def render_match_selection(matches):
         return
 
     data = matches.copy()
+    if "Playable" in data.columns:
+        data = data[data["Playable"]].copy()
     
     required = ["Date", "HomeTeam", "AwayTeam"]
     missing = [col for col in required if col not in data.columns]
@@ -413,9 +441,8 @@ def render_match_selection(matches):
                 unsafe_allow_html=True,
             )
 
-
     # -----------------------------------------------------
-    # SEARCH AND FILTERS — LIVE CLUB SUGGESTIONS
+    # SEARCH AND FILTERS
     # -----------------------------------------------------
 
     st.markdown(
@@ -431,48 +458,15 @@ def render_match_selection(matches):
             set(data["HomeTeam"].dropna().astype(str))
             | set(data["AwayTeam"].dropna().astype(str))
         )
-        
-        search_text = st.text_input(
+
+        selected_team = st.selectbox(
             "🔎 Search by team",
-            placeholder="Try Barcelona, Real Madrid, Betis...",
-            key="match_search",
-        ).strip()
-
-        # Suggestions update automatically on every rerun while typing.
-        suggestions = []
-
-        if search_text:
-            suggestions = [
-                team for team in all_teams
-                if search_text.casefold() in team.casefold()
-            ][:8]
-
-        if suggestions:
-            st.caption("CLUB SUGGESTIONS")
-
-            suggestion_cols = st.columns(min(4, len(suggestions)))
-
-            for i, team in enumerate(suggestions):
-                with suggestion_cols[i % len(suggestion_cols)]:
-                    if st.button(
-                        f"⚽ {team}",
-                        key=f"suggest_team_{i}_{team}",
-                        use_container_width=True,
-                    ):
-                        st.session_state["selected_search_team"] = team
-                        st.rerun()
-
-        elif search_text:
-            st.caption("No clubs found. Try another spelling.")
-
-        selected_team = st.session_state.get("selected_search_team", "")
-
-        if selected_team:
-            st.info(f"Selected club: {selected_team}")
-
-            if st.button("Clear selected club", key="clear_selected_club"):
-                st.session_state["selected_search_team"] = ""
-                st.rerun()
+            options=all_teams,
+            index=None,
+            placeholder="Type a club name: Barcelona, Real Madrid, Betis...",
+            key="match_team_select",
+            on_change=reset_page,
+        ) or ""
 
         filter_cols = st.columns(2)
 
@@ -490,6 +484,7 @@ def render_match_selection(matches):
                 "Competition",
                 competitions,
                 key="match_filter_league",
+                on_change=reset_page,
             )
 
         with filter_cols[1]:
@@ -497,24 +492,16 @@ def render_match_selection(matches):
                 "Season",
                 seasons,
                 key="match_filter_season",
+                on_change=reset_page,
             )
 
         filtered = data.copy()
 
-        # A selected club takes priority over the text being typed.
-        active_search = selected_team if selected_team else search_text
-
-        if active_search:
-            query = active_search.casefold()
-
-            home_matches = filtered["HomeTeam"].astype(str).str.casefold().str.contains(
-                query, regex=False
-            )
-            away_matches = filtered["AwayTeam"].astype(str).str.casefold().str.contains(
-                query, regex=False
-            )
-
-            filtered = filtered[home_matches | away_matches]
+        if selected_team:
+            filtered = filtered[
+                (filtered["HomeTeam"].astype(str) == selected_team)
+                | (filtered["AwayTeam"].astype(str) == selected_team)
+            ]
 
         if selected_league != "All competitions":
             filtered = filtered[

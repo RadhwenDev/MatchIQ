@@ -1,6 +1,7 @@
 import html
 
 import pandas as pd
+import numpy as np
 import streamlit as st
 import streamlit.components.v1 as components
 from team_utils import team_logo_html
@@ -12,6 +13,7 @@ from team_utils import team_logo_html
 def inject_context_css():
     st.markdown(
         """
+        
         <style>
         .context-card {
             background: #111d32;
@@ -231,6 +233,16 @@ def inject_context_css():
             margin-bottom: 10px;
         }
 
+        .custom-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 0px;
+            margin-top: 60px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }    
         .alert-banner {
             background-color: #0d281e;
             border: 1px solid #144734;
@@ -331,8 +343,18 @@ def inject_context_css():
             border-top: 1px solid #1e293b;
             padding-top: 14px;
         }
+        .footer-left .brand-name {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .footer-right {
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 400;
+        }
         .form-card {
-            background: #0f172a;
+            background: #121d28;
             border: 1px solid #1e293b;
             border-radius: 12px;
             padding: 24px;
@@ -421,6 +443,12 @@ def inject_context_css():
         @keyframes pageEnter {
             from { opacity: 0; transform: scale(0.94); }
             to   { opacity: 1; transform: scale(1); }
+        }
+        .form-seg { opacity: 0.55; border: 1px dashed #64748b; }
+        [data-testid="stBaseButton-primary"] {
+            background-color: #79d1ad !important;
+            border-color: #79d1ad !important;
+            color: #0b0f17 !important;
         }
         </style>
         """,
@@ -555,9 +583,13 @@ def render_form_card(team, team_history):
         return
 
     results_html = "".join(
-        f'<span class="form-badge form-{result.lower()}">'
-        f'{safe(result)}</span>'
-        for result in recent["Result"]
+        f'<span class="form-badge form-{r.lower()}'
+        f'{" form-seg" if div == 2 else ""}" '
+        f'title="{"Segunda" if div == 2 else "La Liga"}">{safe(r)}</span>'
+        for r, div in zip(
+            recent["Result"],
+            recent["Division"] if "Division" in recent.columns else [1] * len(recent),
+        )
     )
 
     points = int(recent["Points"].sum())
@@ -597,59 +629,400 @@ def render_form_card(team, team_history):
     )
 
 
-def render_head_to_head(history, home_team, away_team):
-    st.subheader("Previous head-to-head matches")
+# =========================================================
+# SECTIONS CSS
+# =========================================================
 
-    h2h = history[
-        (
-            (history["HomeTeam"] == home_team)
-            & (history["AwayTeam"] == away_team)
+SECTIONS_CSS = """
+<style>
+.mx-card { background:#121d28; border:1px solid #1e293b; border-radius:14px; padding:22px; margin-bottom:16px; }
+.mx-title { color:#fff; font-size:20px; font-weight:700; }
+.mx-sub { color:#64748b; font-size:12px; margin:3px 0 16px; }
+.mx-note { color:#64748b; font-size:11px; margin-top:12px; line-height:1.5; }
+.mx-muted { color:#64748b; font-size:13px; }
+.mx-teams { display:grid; grid-template-columns:1fr 1fr; margin-bottom:10px; }
+.mx-teams div { color:#fff; font-weight:700; font-size:15px; }
+.mx-teams div:last-child { text-align:right; }
+.mx-dot { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:8px; }
+.mx-cmp { display:grid; grid-template-columns:70px 1fr 70px; align-items:center; padding:9px 0; border-top:1px solid #1b2635; }
+.mx-v { color:#cbd5e1; font-size:17px; font-weight:700; }
+.mx-v.r { text-align:right; }
+.mx-v.best { color:#34d399; }
+.mx-l { text-align:center; color:#94a3b8; font-size:12px; }
+.mx-venue { background:#111822; border:1px solid #1e293b; border-radius:10px; padding:12px 14px; margin-top:10px; }
+.mx-venue-h { color:#64748b; font-size:10px; letter-spacing:.8px; text-transform:uppercase; }
+.mx-venue-v { color:#fff; font-size:16px; font-weight:700; margin:4px 0 2px; }
+.mx-venue-s { color:#94a3b8; font-size:12px; }
+.mx-badge { display:inline-block; background:#1e293b; color:#94a3b8; font-size:11px; padding:4px 10px; border-radius:20px; margin-bottom:12px; }
+.mx-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.mx-tile { background:#111822; border:1px solid #1e293b; border-radius:10px; padding:14px 8px; text-align:center; }
+.mx-tile b { display:block; color:#fff; font-size:28px; line-height:1.1; }
+.mx-tile span { color:#94a3b8; font-size:12px; }
+.mx-odds { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.mx-odd { background:#111822; border:1px solid #1e293b; border-radius:10px; padding:14px 8px; text-align:center; }
+.mx-odd b { display:block; color:#fff; font-size:24px; }
+.mx-odd span { color:#94a3b8; font-size:12px; }
+.mx-rest { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.mx-rest div { background:#111822; border:1px solid #1e293b; border-radius:10px; padding:14px; }
+.mx-rest b { color:#fff; font-size:26px; }
+.mx-rest span { display:block; color:#94a3b8; font-size:12px; margin-bottom:4px; }
+</style>
+"""
+
+ODDS_SETS = [
+    ("PSH", "PSD", "PSA"),
+    ("B365H", "B365D", "B365A"),
+    ("AvgH", "AvgD", "AvgA"),
+]
+
+
+# =========================================================
+# SMALL HELPERS
+# =========================================================
+
+def _num(value):
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    return None if pd.isna(v) else v
+
+
+def _fmt(value, decimals=1):
+    return "–" if value is None else f"{value:.{decimals}f}"
+
+
+def _mean(series):
+    s = pd.to_numeric(series, errors="coerce").dropna()
+    return float(s.mean()) if len(s) else None
+
+
+def _team_series(df, team, home_col, away_col):
+    """A team's own value of a stat in every row, wherever it played."""
+    if df.empty or home_col not in df.columns or away_col not in df.columns:
+        return pd.Series(dtype=float)
+    vals = np.where(df["HomeTeam"] == team, df[home_col], df[away_col])
+    return pd.Series(vals, index=df.index)
+
+
+def _card(title, subtitle, body, note=""):
+    note_html = f'<div class="mx-note">{safe(note)}</div>' if note else ""
+    return (
+        '<div class="mx-card">'
+        f'<div class="mx-title">{safe(title)}</div>'
+        f'<div class="mx-sub">{safe(subtitle)}</div>'
+        f'{body}{note_html}</div>'
+    )
+
+
+def _cmp_row(label, left, right, higher_better=True, decimals=1):
+    cl = cr = ""
+    if left is not None and right is not None and left != right:
+        if (left > right) == higher_better:
+            cl = " best"
+        else:
+            cr = " best"
+    return (
+        '<div class="mx-cmp">'
+        f'<div class="mx-v{cl}">{_fmt(left, decimals)}</div>'
+        f'<div class="mx-l">{safe(label)}</div>'
+        f'<div class="mx-v r{cr}">{_fmt(right, decimals)}</div>'
+        '</div>'
+    )
+
+
+def _info_row(label, left, right):
+    return (
+        '<div class="mx-cmp">'
+        f'<div class="mx-v">{safe(left)}</div>'
+        f'<div class="mx-l">{safe(label)}</div>'
+        f'<div class="mx-v r">{safe(right)}</div>'
+        '</div>'
+    )
+
+
+def _team_goals(match, team):
+    if match["HomeTeam"] == team:
+        return match["FTHG"], match["FTAG"]
+    return match["FTAG"], match["FTHG"]
+
+
+def _match_odds(match):
+    """Opening 1X2 odds: Pinnacle, then Bet365, then market average."""
+    for h, d, a in ODDS_SETS:
+        vals = [_num(match.get(h)), _num(match.get(d)), _num(match.get(a))]
+        if all(v is not None for v in vals):
+            return vals
+    return None
+
+
+# =========================================================
+# 1) PERFORMANCE COMPARISON
+# =========================================================
+
+def _venue_block(label, rows, venue_text):
+    if rows.empty:
+        return (
+            '<div class="mx-venue">'
+            f'<div class="mx-venue-h">{safe(label)}</div>'
+            '<div class="mx-muted">Not available</div></div>'
         )
-        | (
-            (history["HomeTeam"] == away_team)
-            & (history["AwayTeam"] == home_team)
-        )
-    ].sort_values("Date", ascending=False).head(5)
+    w = int((rows["Result"] == "W").sum())
+    d = int((rows["Result"] == "D").sum())
+    l = int((rows["Result"] == "L").sum())
+    pts = int(rows["Points"].sum())
+    conceded = _mean(rows["GA"])
+    return (
+        '<div class="mx-venue">'
+        f'<div class="mx-venue-h">{safe(label)} · last {len(rows)} {safe(venue_text)}</div>'
+        f'<div class="mx-venue-v">{w}W · {d}D · {l}L / {pts} points</div>'
+        f'<div class="mx-venue-s">{_fmt(conceded)} goals conceded per match</div>'
+        '</div>'
+    )
 
-    if h2h.empty:
-        st.info("No previous head-to-head matches found in the dataset.")
-        return
 
-    display = h2h[
-        ["Date", "HomeTeam", "FTHG", "FTAG", "AwayTeam"]
-    ].copy()
+def perf_card_html(home_team, away_team, home_history, away_history):
+    h5, a5 = home_history.head(5), away_history.head(5)
 
-    display["Date"] = display["Date"].dt.strftime("%d %b %Y")
-    display.columns = [
-        "Date", "Home team", "Home goals", "Away goals", "Away team"
+    metrics = [
+        ("Average goals scored", _mean(h5["GF"]), _mean(a5["GF"]), True),
+        ("Average goals conceded", _mean(h5["GA"]), _mean(a5["GA"]), False),
+        ("Average shots",
+         _mean(_team_series(h5, home_team, "HS", "AS")),
+         _mean(_team_series(a5, away_team, "HS", "AS")), True),
+        ("Average shots on target",
+         _mean(_team_series(h5, home_team, "HST", "AST")),
+         _mean(_team_series(a5, away_team, "HST", "AST")), True),
+        ("Average corners",
+         _mean(_team_series(h5, home_team, "HC", "AC")),
+         _mean(_team_series(a5, away_team, "HC", "AC")), True),
+        ("Average fouls",
+         _mean(_team_series(h5, home_team, "HF", "AF")),
+         _mean(_team_series(a5, away_team, "HF", "AF")), False),
     ]
 
-    display["Home goals"] = display["Home goals"].astype(int)
-    display["Away goals"] = display["Away goals"].astype(int)
+    body = (
+        '<div class="mx-teams">'
+        f'<div><span class="mx-dot" style="background:#34d399"></span>{safe(home_team)}</div>'
+        f'<div>{safe(away_team)}<span class="mx-dot" style="background:#60a5fa;margin:0 0 0 8px"></span></div>'
+        '</div>'
+    )
+    body += "".join(_cmp_row(label, l, r, hb) for label, l, r, hb in metrics)
 
-    st.dataframe(
-        display,
-        hide_index=True,
-        use_container_width=True,
+    home_venue = home_history[home_history["HomeTeam"] == home_team].head(5)
+    away_venue = away_history[away_history["AwayTeam"] == away_team].head(5)
+
+    body += _venue_block(f"{home_team}", home_venue, "home fixtures")
+    body += _venue_block(f"{away_team}", away_venue, "away fixtures")
+
+    return _card(
+        "Performance comparison",
+        "Per-match averages · last 5 fixtures (La Liga and Segunda)",
+        body,
+        "Venue windows are separate from overall form. "
+        "Green marks the better value in each row.",
     )
 
-def render_team(team, role):
-    logo = get_logo(team)
-    team_name = safe(team)
 
-    if logo:
-        image_html = f"""<img class="club-logo" src="{safe(logo)}" alt="{team_name}" onerror=" this.style.display='none'; this.nextElementSibling.style.display='flex';"> <div class="club-fallback" style="display:none"> {safe(get_initials(team))}</div>"""
+# =========================================================
+# 2) LEAGUE CONTEXT
+# =========================================================
+
+def league_table(history, target):
+    """Table of the target's season, built from matches before the date."""
+    df = history
+    if "Season" in df.columns:
+        df = df[df["Season"] == target.get("Season")]
+    if "Division" in df.columns:
+        df = df[df["Division"] == 1]
+    if df.empty:
+        return None
+
+    home = pd.DataFrame({"Team": df["HomeTeam"], "GF": df["FTHG"], "GA": df["FTAG"]})
+    away = pd.DataFrame({"Team": df["AwayTeam"], "GF": df["FTAG"], "GA": df["FTHG"]})
+    t = pd.concat([home, away], ignore_index=True)
+    t["Pts"] = np.where(t["GF"] > t["GA"], 3, np.where(t["GF"] == t["GA"], 1, 0))
+
+    table = t.groupby("Team").agg(
+        P=("Pts", "size"), Pts=("Pts", "sum"),
+        GF=("GF", "sum"), GA=("GA", "sum"),
+    )
+    table["GD"] = table["GF"] - table["GA"]
+    table = table.sort_values(["Pts", "GD", "GF"], ascending=False)
+    table["Pos"] = range(1, len(table) + 1)
+    return table
+
+
+def league_card_html(table, home_team, away_team):
+    if table is None or (home_team not in table.index and away_team not in table.index):
+        body = (
+            '<div class="mx-badge">Not available</div>'
+            '<div class="mx-venue-v">Season opening fixture</div>'
+            '<div class="mx-muted">No prior league table: neither team has '
+            'played a La Liga match this season yet.</div>'
+        )
+        return _card("League context", "Table snapshot before the selected match", body)
+
+    def get(team, col, fmt):
+        if team not in table.index:
+            return "Not available"
+        v = table.loc[team, col]
+        return fmt(v)
+
+    rows = ""
+    rows += _info_row("Position", get(home_team, "Pos", lambda v: f"{int(v)}"),
+                      get(away_team, "Pos", lambda v: f"{int(v)}"))
+    rows += _info_row("Points", get(home_team, "Pts", lambda v: f"{int(v)}"),
+                      get(away_team, "Pts", lambda v: f"{int(v)}"))
+    rows += _info_row("Goal difference", get(home_team, "GD", lambda v: f"{int(v):+d}"),
+                      get(away_team, "GD", lambda v: f"{int(v):+d}"))
+    rows += _info_row("Matches played", get(home_team, "P", lambda v: f"{int(v)}"),
+                      get(away_team, "P", lambda v: f"{int(v)}"))
+
+    body = (
+        '<div class="mx-teams">'
+        f'<div>{safe(home_team)}</div><div>{safe(away_team)}</div></div>'
+        + rows
+    )
+    return _card(
+        "League context",
+        "Table snapshot before the selected match",
+        body,
+        "Ranked by points, goal difference, then goals scored "
+        "(official tie-breakers may differ).",
+    )
+
+
+# =========================================================
+# 3) RECOVERY WINDOW
+# =========================================================
+
+def _rest_days(team_history, target_date):
+    if team_history.empty:
+        return None
+    last = team_history["Date"].iloc[0]          # sorted newest first
+    return int((target_date.normalize() - last.normalize()).days)
+
+
+def recovery_card_html(home_team, away_team, home_history, away_history, target_date):
+    hd = _rest_days(home_history, target_date)
+    ad = _rest_days(away_history, target_date)
+
+    def cell(team, days):
+        value = "Not available" if days is None else f"<b>{days}</b> days"
+        return f'<div><span>{safe(team)}</span>{value}</div>'
+
+    note = "Counts every fixture in the data (La Liga and Segunda). No cup or European fixtures."
+    if any(d is not None and d > 30 for d in (hd, ad)):
+        note = "A gap above 30 days is the summer break. " + note
+
+    return _card(
+        "Recovery window",
+        "Days since each team's previous fixture",
+        f'<div class="mx-rest">{cell(home_team, hd)}{cell(away_team, ad)}</div>',
+        note,
+    )
+
+
+# =========================================================
+# 4) HEAD TO HEAD
+# =========================================================
+
+def _pair(m, a, b):
+    x, y = _num(m.get(a)), _num(m.get(b))
+    return "–" if x is None or y is None else f"{int(x)}–{int(y)}"
+
+
+def h2h_card_html(h2h, home_team, away_team):
+    if h2h.empty:
+        body = (
+            '<div class="mx-badge">No previous meeting</div>'
+            '<div class="mx-muted">These two clubs have not met in the '
+            'available data (2021/22 onwards).</div>'
+        )
+        return _card("Head-to-head", "Previous meetings only · selected match excluded", body)
+
+    hw = dw = aw = 0
+    for _, m in h2h.iterrows():
+        hg, ag = _team_goals(m, home_team)
+        hw += hg > ag
+        aw += hg < ag
+        dw += hg == ag
+
+    if hw > aw:
+        verdict = f"Previous meetings favored {home_team}."
+    elif aw > hw:
+        verdict = f"Previous meetings favored {away_team}."
     else:
-        image_html = f"""
-            <div class="club-fallback">
-                {safe(get_initials(team))}
-            </div>
-        """
+        verdict = "Previous meetings were evenly split."
 
-    st.markdown(
-        f"""<div class="club">{image_html}<div class="club-name">{team_name}</div><div class="club-role">{role}</div></div>""",
-        unsafe_allow_html=True
+    body = (
+        '<div class="mx-tiles">'
+        f'<div class="mx-tile"><b>{int(hw)}</b><span>{safe(home_team)} wins</span></div>'
+        f'<div class="mx-tile"><b>{int(dw)}</b><span>Draws</span></div>'
+        f'<div class="mx-tile"><b>{int(aw)}</b><span>{safe(away_team)} wins</span></div>'
+        '</div>'
     )
+
+    note = f"{verdict} History is context, not a guarantee."
+    if len(h2h) < 3:
+        note += " Small sample: treat with caution."
+    if "Division" in h2h.columns and (h2h["Division"] == 2).any():
+        note += " Segunda meetings are weaker evidence."
+
+    return _card(
+        "Head-to-head",
+        f"Previous {len(h2h)} meeting(s) only · selected match excluded",
+        body,
+        note,
+    )
+
+
+def h2h_table(h2h):
+    rows = []
+    for _, m in h2h.iterrows():
+        is_seg = _num(m.get("Division")) == 2
+        rows.append({
+            "Date": pd.Timestamp(m["Date"]).strftime("%d %b %Y"),
+            "Competition": "Segunda" if is_seg else "La Liga",
+            "Home": m["HomeTeam"],
+            "Score": f'{int(m["FTHG"])}–{int(m["FTAG"])}',
+            "Away": m["AwayTeam"],
+            "Half-time": _pair(m, "HTHG", "HTAG"),
+            "Shots": _pair(m, "HS", "AS"),
+            "On target": _pair(m, "HST", "AST"),
+            "Corners": _pair(m, "HC", "AC"),
+            "Fouls": _pair(m, "HF", "AF"),
+            "Yellows": _pair(m, "HY", "AY"),
+            "Reds": _pair(m, "HR", "AR"),
+        })
+    return pd.DataFrame(rows)
+
+
+# =========================================================
+# 5) MARKET EXPECTATION
+# =========================================================
+
+def market_card_html(target):
+    odds = _match_odds(target)
+    if odds is None:
+        body = '<div class="mx-muted">Not available for this match.</div>'
+    else:
+        body = (
+            '<div class="mx-odds">'
+            f'<div class="mx-odd"><b>{odds[0]:.2f}</b><span>Home</span></div>'
+            f'<div class="mx-odd"><b>{odds[1]:.2f}</b><span>Draw</span></div>'
+            f'<div class="mx-odd"><b>{odds[2]:.2f}</b><span>Away</span></div>'
+            '</div>'
+        )
+    return _card(
+        "Market Expectation",
+        "Optional analytical reference · pre-match only",
+        body,
+        "Based on pre-match bookmaker odds. This is an analytical reference, "
+        "not a betting recommendation.",
+    )
+
 
 # =========================================================
 # MAIN CONTEXT PAGE
@@ -657,8 +1030,11 @@ def render_team(team, role):
 
 def render_match_context(matches, selected_index):
     inject_context_css()
+    st.markdown(SECTIONS_CSS, unsafe_allow_html=True)
+
     if st.session_state.pop("scroll_to_top", False):
         scroll_to_top()
+
     if selected_index is None:
         st.warning("Select a match first.")
         return
@@ -668,20 +1044,15 @@ def render_match_context(matches, selected_index):
         return
 
     target = matches.loc[selected_index]
-
     home_team = target["HomeTeam"]
     away_team = target["AwayTeam"]
 
     history = prepare_history(matches, target)
-
     home_history = get_team_history(history, home_team)
     away_history = get_team_history(history, away_team)
 
-    target_date = pd.to_datetime(
-        target["Date"], errors="coerce", dayfirst=True
-    )
-    
-    date_str = target_date.strftime('%d %B %Y') if pd.notna(target_date) else ""
+    target_date = pd.to_datetime(target["Date"], errors="coerce", dayfirst=True)
+    date_str = target_date.strftime("%d %B %Y") if pd.notna(target_date) else ""
 
     home_logo = team_logo_html(home_team)
     away_logo = team_logo_html(away_team)
@@ -721,7 +1092,7 @@ def render_match_context(matches, selected_index):
         <span>🛡️</span> Only information available before kickoff is shown.
     </div>
     """, unsafe_allow_html=True)
-
+        
     left, right = st.columns(2, gap="large")
 
     with left:
@@ -729,10 +1100,60 @@ def render_match_context(matches, selected_index):
 
     with right:
         render_form_card(away_team, away_history)
+        
+    st.write("")
 
-    st.divider()
-    render_head_to_head(history, home_team, away_team)
+    table = league_table(history, target)
 
+    mask = (
+        ((history["HomeTeam"] == home_team) & (history["AwayTeam"] == away_team))
+        | ((history["HomeTeam"] == away_team) & (history["AwayTeam"] == home_team))
+    )
+    h2h = history[mask].sort_values("Date", ascending=False).head(5)
+
+    # ---- row 1: performance | league + recovery ----
+    left, right = st.columns([1.5, 1], gap="large")
+
+    with left:
+        st.markdown(
+            perf_card_html(home_team, away_team, home_history, away_history),
+            unsafe_allow_html=True,
+        )
+
+    with right:
+        st.markdown(league_card_html(table, home_team, away_team), unsafe_allow_html=True)
+        st.markdown(
+            recovery_card_html(home_team, away_team, home_history, away_history, target_date),
+            unsafe_allow_html=True,
+        )
+
+    # ---- row 2: head-to-head | market expectation ----
+    left, right = st.columns([1.5, 1], gap="large")
+
+    with left:
+        st.markdown(h2h_card_html(h2h, home_team, away_team), unsafe_allow_html=True)
+        if not h2h.empty:
+            with st.expander("Meeting-by-meeting details"):
+                st.dataframe(h2h_table(h2h), hide_index=True, use_container_width=True)
+
+    with right:
+        show_market = st.checkbox(
+            "Show market expectation (optional)",
+            key="show_market_expectation",
+        )
+        if show_market:
+            st.markdown(market_card_html(target), unsafe_allow_html=True)
+
+    st.markdown(
+        '<div style="color:#ffffff; font-weight:600; font-size:16px; margin-bottom:2px;">'
+        'Enough evidence to form a view?'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        "These illustrative indicators support reasoning. "
+        "They cannot determine the result."
+    )
     st.divider()
 
     back_col, next_col = st.columns(2)
@@ -747,10 +1168,24 @@ def render_match_context(matches, selected_index):
 
     with next_col:
         if st.button(
-            "Continue to Prediction →",
+            "Make your Prediction →",
             type="primary",
             use_container_width=True,
         ):
             st.session_state["analysis_step"] = 3
             st.session_state["prediction_ready"] = False
             st.rerun()
+            
+    st.markdown(
+            """
+            <div class="custom-footer">
+                <div class="footer-left">
+                    <span class="brand-name">MatchIQ</span> &nbsp;/&nbsp; An independent football learning lab
+                </div>
+                <div class="footer-right">
+                    Study evidence. Make a decision. Learn from the outcome.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )

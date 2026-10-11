@@ -3,7 +3,7 @@ import html
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-
+from team_utils import team_logo_html
 
 # =========================================================
 # CSS
@@ -37,6 +37,29 @@ def inject_context_css():
             padding: 18px;
             border-radius: 16px;
             margin-bottom: 10px;
+        }
+        .team-block-logo {
+            flex-direction: row;
+            align-items: center;
+            gap: 14px;
+        }
+        .club-fallback {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 20px;
+            font-weight: 700;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+        }
+        .club-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            display: block;
         }
         .form-card-header {
             display: flex;
@@ -110,6 +133,10 @@ def inject_context_css():
             align-items: center;
             margin-bottom: 20px;
         }
+        @media (max-width: 700px) {
+            .club-logo, .club-fallback { width: 44px; height: 44px; }
+            .team-title { font-size: 24px; }
+        }
 
         .breadcrumb {
             color: #94a3b8;
@@ -155,7 +182,10 @@ def inject_context_css():
             align-items: center;
             gap: 20px;
         }
-
+        .team-text {
+            display: flex;
+            flex-direction: column;
+        }
         .team-block {
             display: flex;
             flex-direction: column;
@@ -603,6 +633,23 @@ def render_head_to_head(history, home_team, away_team):
         use_container_width=True,
     )
 
+def render_team(team, role):
+    logo = get_logo(team)
+    team_name = safe(team)
+
+    if logo:
+        image_html = f"""<img class="club-logo" src="{safe(logo)}" alt="{team_name}" onerror=" this.style.display='none'; this.nextElementSibling.style.display='flex';"> <div class="club-fallback" style="display:none"> {safe(get_initials(team))}</div>"""
+    else:
+        image_html = f"""
+            <div class="club-fallback">
+                {safe(get_initials(team))}
+            </div>
+        """
+
+    st.markdown(
+        f"""<div class="club">{image_html}<div class="club-name">{team_name}</div><div class="club-role">{role}</div></div>""",
+        unsafe_allow_html=True
+    )
 
 # =========================================================
 # MAIN CONTEXT PAGE
@@ -636,6 +683,9 @@ def render_match_context(matches, selected_index):
     
     date_str = target_date.strftime('%d %B %Y') if pd.notna(target_date) else ""
 
+    home_logo = team_logo_html(home_team)
+    away_logo = team_logo_html(away_team)
+
     st.markdown(f"""
     <div class="match-header-top">
         <div class="breadcrumb">Pre-Match Analysis &nbsp;/&nbsp; {date_str}</div>
@@ -644,24 +694,28 @@ def render_match_context(matches, selected_index):
             <span class="badge-pill-green">🛡️ Pre-match</span>
         </div>
     </div>
-
     <div class="teams-section">
         <div class="teams-display">
-            <div class="team-block">
-                <span class="team-label">HOME TEAM</span>
-                <span class="team-title">{home_team}</span>
+            <div class="team-block team-block-logo">
+                {home_logo}
+                <div class="team-text">
+                    <span class="team-label">HOME TEAM</span>
+                    <span class="team-title">{safe(home_team)}</span>
+                </div>
             </div>
             <span class="vs-text">VS</span>
-            <div class="team-block">
-                <span class="team-label">AWAY TEAM</span>
-                <span class="team-title">{away_team}</span>
+            <div class="team-block team-block-logo">
+                {away_logo}
+                <div class="team-text">
+                    <span class="team-label">AWAY TEAM</span>
+                    <span class="team-title">{safe(away_team)}</span>
+                </div>
             </div>
         </div>
         <div class="sub-notice">
             Travel back to before kickoff. The selected match's result and post-match statistics are hidden during this stage.
         </div>
     </div>
-
     <div class="section-title">PRE-MATCH INFORMATION</div>
     <div class="alert-banner">
         <span>🛡️</span> Only information available before kickoff is shown.

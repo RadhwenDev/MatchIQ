@@ -7,7 +7,7 @@ from match_selection import render_match_selection, play_zoom_transition
 from data_loader import load_all_matches
 from match_selection import render_match_selection
 from match_context import render_match_context
-
+from match_predict import render_match_prediction
 
 # =========================================================
 # CONFIGURATION
@@ -234,6 +234,15 @@ elif step == 2:
         st.session_state["selected_match_index"],
     )
 
+# =========================================================
+# STEP 3 — PREDICT
+# =========================================================
+
+elif step == 3:
+    render_match_prediction(
+        matches,
+        st.session_state["selected_match_index"],
+    )
 
 # =========================================================
 # GET SELECTED MATCH FOR LATER STAGES
@@ -249,60 +258,10 @@ else:
     st.caption(f"{home_team} vs {away_team}")
 
     # -----------------------------------------------------
-    # STEP 3 — PREDICT
-    # -----------------------------------------------------
-
-    if step == 3:
-        st.title("Make Your Prediction")
-        st.write(
-            "Based on the pre-match information, "
-            "what do you think the outcome will be?"
-        )
-
-        prediction_options = {
-            f"{home_team} win": "H",
-            "Draw": "D",
-            f"{away_team} win": "A",
-        }
-
-        option_labels = list(prediction_options.keys())
-
-        current_prediction = st.session_state.get("prediction", "D")
-
-        default_index = next(
-            (
-                i for i, label in enumerate(option_labels)
-                if prediction_options[label] == current_prediction
-            ),
-            1,
-        )
-
-        selected_prediction_label = st.radio(
-            "Your predicted outcome",
-            option_labels,
-            index=default_index,
-        )
-
-        if st.button(
-            "Lock Prediction & Reveal Result →",
-            type="primary",
-            use_container_width=True,
-        ):
-            st.session_state["prediction"] = prediction_options[
-                selected_prediction_label
-            ]
-            st.session_state["analysis_step"] = 4
-            st.rerun()
-
-        if st.button("← Back to Context", use_container_width=True):
-            st.session_state["analysis_step"] = 2
-            st.rerun()
-
-    # -----------------------------------------------------
     # STEP 4 — REVEAL
     # -----------------------------------------------------
 
-    elif step == 4:
+    if step == 4:
         st.title("The Result")
         st.write(f"**{home_team} vs {away_team}**")
 

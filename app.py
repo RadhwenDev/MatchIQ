@@ -8,6 +8,7 @@ from data_loader import load_all_matches
 from match_selection import render_match_selection
 from match_context import render_match_context
 from match_predict import render_match_prediction
+from match_reveal import render_match_reveal
 
 # =========================================================
 # CONFIGURATION
@@ -243,6 +244,16 @@ elif step == 3:
         matches,
         st.session_state["selected_match_index"],
     )
+    
+# =========================================================
+# STEP 4 — REVEAL
+# =========================================================
+
+elif step == 4:
+    render_match_reveal(
+        matches,
+        st.session_state["selected_match_index"],
+    )
 
 # =========================================================
 # GET SELECTED MATCH FOR LATER STAGES
@@ -257,65 +268,12 @@ else:
 
     st.caption(f"{home_team} vs {away_team}")
 
-    # -----------------------------------------------------
-    # STEP 4 — REVEAL
-    # -----------------------------------------------------
-
-    if step == 4:
-        st.title("The Result")
-        st.write(f"**{home_team} vs {away_team}**")
-
-        if (
-            "FTHG" not in match.index
-            or "FTAG" not in match.index
-            or not __import__("pandas").notna(match["FTHG"])
-            or not __import__("pandas").notna(match["FTAG"])
-        ):
-            st.warning(
-                "The actual score is unavailable for this fixture."
-            )
-        else:
-            home_goals = int(match["FTHG"])
-            away_goals = int(match["FTAG"])
-
-            st.markdown(
-                f"## {home_team} **{home_goals} – {away_goals}** "
-                f"{away_team}"
-            )
-
-            actual_result = (
-                "H" if home_goals > away_goals
-                else "A" if away_goals > home_goals
-                else "D"
-            )
-
-            prediction = st.session_state.get("prediction")
-
-            if prediction is None:
-                st.warning("No saved prediction was found.")
-            elif prediction == actual_result:
-                st.success("Correct prediction!")
-            else:
-                st.info("Your prediction was different from the actual outcome.")
-
-            if st.button(
-                "Continue to Learning →",
-                type="primary",
-                use_container_width=True,
-            ):
-                st.session_state["actual_result"] = actual_result
-                st.session_state["analysis_step"] = 5
-                st.rerun()
-
-        if st.button("← Back to Prediction", use_container_width=True):
-            st.session_state["analysis_step"] = 3
-            st.rerun()
 
     # -----------------------------------------------------
     # STEP 5 — LEARN
     # -----------------------------------------------------
 
-    elif step == 5:
+    if step == 5:
         st.title("What Did You Learn?")
         st.write(
             "Reflect on your prediction. Which pre-match information "

@@ -286,6 +286,19 @@ def render_locked_page(idx, home, away):
             'lesson.</div>',
             unsafe_allow_html=True,
         )
+        st.markdown(
+                """
+                <div class="custom-footer">
+                    <div class="footer-left">
+                        <span class="brand-name">MatchIQ</span> &nbsp;/&nbsp; An independent football learning lab
+                    </div>
+                    <div class="footer-right">
+                        Study evidence. Make a decision. Learn from the outcome.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
 # =========================================================
 # MAIN PAGE

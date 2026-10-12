@@ -9,6 +9,7 @@ from match_selection import render_match_selection
 from match_context import render_match_context
 from match_predict import render_match_prediction
 from match_reveal import render_match_reveal
+from match_learn import render_match_learn
 
 # =========================================================
 # CONFIGURATION
@@ -254,51 +255,13 @@ elif step == 4:
         matches,
         st.session_state["selected_match_index"],
     )
-
+    
 # =========================================================
-# GET SELECTED MATCH FOR LATER STAGES
+# STEP 5 — LEARN
 # =========================================================
 
-else:
-    selected_index = st.session_state["selected_match_index"]
-    match = matches.loc[selected_index]
-
-    home_team = match["HomeTeam"]
-    away_team = match["AwayTeam"]
-
-    st.caption(f"{home_team} vs {away_team}")
-
-
-    # -----------------------------------------------------
-    # STEP 5 — LEARN
-    # -----------------------------------------------------
-
-    if step == 5:
-        st.title("What Did You Learn?")
-        st.write(
-            "Reflect on your prediction. Which pre-match information "
-            "influenced your decision, and what would you analyse "
-            "differently next time?"
-        )
-
-        reflection = st.text_area(
-            "Your analysis",
-            placeholder=(
-                "I predicted this outcome because...\n"
-                "Next time, I would also consider..."
-            ),
-            key="learning_reflection",
-        )
-
-        if st.button(
-            "Finish Analysis",
-            type="primary",
-            use_container_width=True,
-        ):
-            st.success("Analysis completed. Good work!")
-            st.write("**Your reflection:**")
-            st.write(reflection or "No reflection added.")
-
-        if st.button("← Back to Result", use_container_width=True):
-            st.session_state["analysis_step"] = 4
-            st.rerun()
+elif step == 5:
+    render_match_learn(
+        matches,
+        st.session_state["selected_match_index"],
+    )

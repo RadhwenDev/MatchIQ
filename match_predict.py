@@ -32,7 +32,7 @@ PREDICT_CSS = """
             display:flex; align-items:center; justify-content:center;
             font-weight:800; font-size:14px; }
 
-.pd-card { background:#121d28; border:1px solid #1e293b; border-radius:14px;
+.pd-card { background:#121d28; border:1px solid #1e293b; border: 2px solid #79d1ad; border-radius:14px;
            padding:22px; margin-bottom:16px; }
 .pd-card-h { display:flex; justify-content:space-between; align-items:center; }
 .pd-card-t { color:#fff; font-size:20px; font-weight:700; }
@@ -64,6 +64,48 @@ PREDICT_CSS = """
 }
 
 @media (max-width:700px) { .pd-title { font-size:30px; } }
+.lk-head { text-align:center; margin:10px 0 26px; }
+.lk-icon { width:68px; height:68px; border-radius:18px; margin:0 auto 18px;
+           background:rgba(121,209,173,.12); border:1px solid rgba(121,209,173,.35);
+           display:flex; align-items:center; justify-content:center; font-size:32px; }
+.lk-title { color:#fff; font-size:40px; font-weight:800; }
+.lk-sub { color:#94a3b8; font-size:16px; margin-top:8px; }
+
+.lk-card { background:#121d28; border:1px solid #1e293b; border: 2px solid #79d1ad; border-radius:20px;
+           padding:34px 40px; margin-bottom:22px; }
+.lk-card-h { color:#64748b; font-size:11px; letter-spacing:1.5px; font-weight:700;
+             text-align:center; margin-bottom:22px; }
+.lk-sides { display:grid; grid-template-columns:1fr 1fr; color:#64748b;
+            font-size:11px; letter-spacing:1px; font-weight:700; }
+.lk-sides div:last-child { text-align:right; }
+.lk-line { display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+           gap:20px; margin:10px 0 24px; }
+.lk-team { display:flex; align-items:center; gap:14px; min-width:0; }
+.lk-team.r { justify-content:flex-end; }
+.lk-team-name { color:#fff; font-size:24px; font-weight:700; }
+.lk-team .club-logo, .lk-team .club-fallback {
+    width:56px; height:56px; flex-shrink:0; }
+.lk-score { color:#fff; font-size:54px; font-weight:800; text-align:center; }
+.lk-pills { display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+            padding-bottom:22px; border-bottom:1px solid #1b2635; }
+.lk-pill { background:#1e293b; color:#cbd5e1; font-size:12px; padding:6px 14px;
+           border-radius:20px; }
+.lk-pill.g { background:rgba(121,209,173,.12); color:#79d1ad; }
+.lk-items { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:22px; }
+.lk-item { display:flex; gap:14px; }
+.lk-item-i { font-size:18px; }
+.lk-item-t { color:#fff; font-size:15px; font-weight:700; }
+.lk-item-d { color:#94a3b8; font-size:13px; line-height:1.5; }
+.lk-foot { color:#94a3b8; font-size:13px; text-align:center; margin-top:16px; }
+
+@media (max-width:700px) {
+    .lk-title { font-size:28px; }
+    .lk-score { font-size:34px; }
+    .lk-card { padding:22px 18px; }
+    .lk-team-name { font-size:16px; }
+    .lk-team .club-logo, .lk-team .club-fallback { width:40px; height:40px; }
+    .lk-items { grid-template-columns:1fr; gap:16px; }
+}
 </style>
 """
 
@@ -171,6 +213,79 @@ def _opt_card(code, header, name, desc, selected):
         "</div>"
     )
 
+def render_locked_page(idx, home, away):
+    """Standalone screen shown after Lock Prediction."""
+    if st.session_state.get("_pd_lock_scrolled_for") != idx:
+        scroll_to_top()
+        st.session_state["_pd_lock_scrolled_for"] = idx
+
+    code = st.session_state.get("prediction")
+    score = st.session_state.get("predicted_score")
+
+    score_text = f"{score[0]} — {score[1]}" if score else "vs"
+    score_pill = "Exact score submitted" if score else "Outcome only"
+
+    _, mid, _ = st.columns([1, 3, 1])
+
+    with mid:
+        # ---- above the box ----
+        st.markdown(
+            '<div class="lk-head">'
+            '<div class="lk-icon">🔒</div>'
+            '<div class="lk-title">Prediction Locked 🔒</div>'
+            '<div class="lk-sub">The whistle hasn’t blown yet. '
+            'Let’s see how your analysis performs.</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        # ---- the big box ----
+        st.markdown(
+            '<div class="lk-card">'
+            '<div class="lk-card-h">YOUR PREDICTION</div>'
+            '<div class="lk-sides"><div>HOME</div><div>AWAY</div></div>'
+            '<div class="lk-line">'
+            '<div class="lk-team">'
+            f'{team_logo_html(home)}'
+            f'<span class="lk-team-name">{safe(home)}</span></div>'
+            f'<div class="lk-score">{safe(score_text)}</div>'
+            '<div class="lk-team r">'
+            f'<span class="lk-team-name">{safe(away)}</span>'
+            f'{team_logo_html(away)}</div>'
+            '</div>'
+            '<div class="lk-pills">'
+            f'<span class="lk-pill g">{safe(_outcome_label(code))}</span>'
+            f'<span class="lk-pill">{score_pill}</span>'
+            '<span class="lk-pill">🔒 Locked · not editable</span>'
+            '</div>'
+            '<div class="lk-items">'
+            '<div class="lk-item"><div class="lk-item-i">✔</div><div>'
+            '<div class="lk-item-t">Prediction secured</div>'
+            '<div class="lk-item-d">Your outcome and score are saved '
+            'for this learning attempt.</div></div></div>'
+            '<div class="lk-item"><div class="lk-item-i">👁</div><div>'
+            '<div class="lk-item-t">Result still hidden</div>'
+            '<div class="lk-item-d">No full-time outcome or actual-match '
+            'statistics are visible yet.</div></div></div>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        # ---- below the box ----
+        st.button(
+            "Reveal Result 👁",
+            type="primary",
+            use_container_width=True,
+            on_click=_go_reveal,
+        )
+
+        st.markdown(
+            '<div class="lk-foot">First, compare the outcome. Then examine '
+            'your reasoning. A missed prediction is still a useful '
+            'lesson.</div>',
+            unsafe_allow_html=True,
+        )
 
 # =========================================================
 # MAIN PAGE
@@ -194,6 +309,9 @@ def render_match_prediction(matches, selected_index):
     target = matches.loc[idx]
     home = target["HomeTeam"]
     away = target["AwayTeam"]
+    if st.session_state.get("prediction_locked_for") == idx:
+        render_locked_page(idx, home, away)
+        return
     league = target.get("League", "La Liga")
     season = target.get("Season", "")
 
@@ -225,27 +343,7 @@ def render_match_prediction(matches, selected_index):
         unsafe_allow_html=True,
     )
 
-    # ---------- already locked ----------
-    if st.session_state.get("prediction_locked_for") == idx:
-        code = st.session_state.get("prediction")
-        score = st.session_state.get("predicted_score")
-        st.markdown(
-            '<div class="pd-card">'
-            '<div class="pd-tag">PREDICTION LOCKED</div>'
-            f'<div class="pd-title" style="font-size:30px">'
-            f'{safe(_summary_text(code, home, away, score))}</div>'
-            '<div class="pd-sub" style="font-size:15px;margin-bottom:0">'
-            'This attempt can no longer be changed. '
-            'The result is still hidden until you reveal it.</div></div>',
-            unsafe_allow_html=True,
-        )
-        st.button(
-            "Reveal the result →",
-            type="primary",
-            use_container_width=True,
-            on_click=_go_reveal,
-        )
-        return
+
 
     # ---------- history for the side checks ----------
     history = prepare_history(matches, target)

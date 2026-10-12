@@ -10,6 +10,7 @@ from match_context import render_match_context
 from match_predict import render_match_prediction
 from match_reveal import render_match_reveal
 from match_learn import render_match_learn
+from match_stats import render_match_stats
 
 # =========================================================
 # CONFIGURATION
@@ -202,10 +203,9 @@ if (
 # =========================================================
 
 step = int(st.session_state["analysis_step"])
-step = max(1, min(step, len(STEPS)))
+step = max(1, min(step, 6))
 
-render_stepper(step)
-
+render_stepper(min(step, len(STEPS)))
 
 # =========================================================
 # STEP 1 — SELECT A MATCH
@@ -262,6 +262,16 @@ elif step == 4:
 
 elif step == 5:
     render_match_learn(
+        matches,
+        st.session_state["selected_match_index"],
+    )
+
+# =========================================================
+# STEP 6 — ACTUAL MATCH STATS
+# =========================================================
+
+elif step == 6:
+    render_match_stats(
         matches,
         st.session_state["selected_match_index"],
     )

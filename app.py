@@ -11,6 +11,8 @@ from match_predict import render_match_prediction
 from match_reveal import render_match_reveal
 from match_learn import render_match_learn
 from match_stats import render_match_stats
+from match_history import render_match_history
+from navbar import render_navbar, render_about
 
 # =========================================================
 # CONFIGURATION
@@ -85,7 +87,7 @@ def render_stepper(current_step):
             display: flex;
             align-items: center;
             gap: 12px;
-            background: #0d131c;
+            background: #0b0f17;
             padding: 16px;
             border-radius: 14px;
             margin: 10px 0 24px;
@@ -197,6 +199,20 @@ if (
     st.session_state["selected_match_index"] = None
     st.session_state["analysis_step"] = 1
 
+# =========================================================
+# NAVBAR + SIDE PAGES
+# =========================================================
+
+view = st.session_state.get("view")
+render_navbar(view)
+
+if view == "history":
+    render_match_history()
+    st.stop()
+
+if view == "about":
+    render_about()
+    st.stop()
 
 # =========================================================
 # DISPLAY CURRENT STAGE

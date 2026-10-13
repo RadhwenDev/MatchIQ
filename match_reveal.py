@@ -3,6 +3,7 @@ import streamlit as st
 
 from match_context import inject_context_css, scroll_to_top, safe
 from team_utils import team_logo_html
+from match_history import record_attempt
 
 
 # =========================================================
@@ -163,6 +164,19 @@ def render_match_reveal(matches, selected_index):
 
     st.session_state["actual_result"] = actual
     st.session_state["actual_score"] = (hg, ag)
+    record_attempt(
+        attempt_id=st.session_state.get("attempt_id"),
+        idx=idx,
+        home=home,
+        away=away,
+        date_str=pd.Timestamp(target["Date"]).strftime("%d %b %Y"),
+        season=target.get("Season", ""),
+        league=target.get("League", "La Liga"),
+        pred=code,
+        pred_score=pred_score,
+        actual=actual,
+        actual_score=(hg, ag),
+    )
 
     if pred_score is None:
         score_status = "not submitted"

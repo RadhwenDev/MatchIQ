@@ -122,6 +122,8 @@ def _lock(idx, code, score):
     st.session_state["prediction"] = code
     st.session_state["predicted_score"] = score
     st.session_state["prediction_locked_for"] = idx
+    st.session_state["attempt_counter"] = st.session_state.get("attempt_counter", 0) + 1
+    st.session_state["attempt_id"] = st.session_state["attempt_counter"]
 
 
 def _go_context():
